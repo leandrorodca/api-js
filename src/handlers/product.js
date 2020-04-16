@@ -1,4 +1,4 @@
-const ProductModel = require('../models/products')
+const ProductRepository = require('../repositories/products')
 
 const transformer = product => ({
          type: 'products',
@@ -13,54 +13,44 @@ const transformer = product => ({
      })
 
 //lista todos os produtos
-const getAll = async (request, h)=>{
-            const products = await ProductModel.find({})
+const getAll = async ()=>{
+            const products = await ProductRepository.getAll()
 
             return {data: products.map(transformer)};
         }
 
 
 //lista um produto
-const find = async (req, h)=>{
-            const product = await ProductModel.findById(req.params.id)
+const find = async (req)=>{
 
-            return h.response({data: transformer(product)}).code(200)
+            const product = await ProductRepository.find(req.params.id)
+
+            return {data: transformer(product)}
         }
 
 
 //salva um produto
 const save = async (req, h)=>{
-     //console.log(req.payload)
-     const {name , price} = req.payload
-
-     const product = new ProductModel
-
-     product.name = name
-
-     product.price = price
-
-     await product.save();     
-
-     return h.response({data: transformer(product)}).code(201)
-     // ou return h.response({data: product}).code(201)
+     
+    const product = await  ProductRepository.save(req.payload)
+     
+    return h.response(transformer(product)).code(201)
+     
  }
 
 //remove um produto
  const remove = async(req,h)=>{
-     await ProductModel.findOneAndDelete({_id: req.params.id})
+     await ProductRepository.remove(req.params.id)
      return h.response().code(204)
  }
 
  //alterando produto
  const update = async (req, h)=>{
 
-            const {id , name , price} = req.payload
+            const product = await ProductRepository.update(req.payload)
 
-            const product = await ProductModel.findByIdAndUpdate(id,{name ,price})
+            return h.response(transformer(product)).code(200)
 
-            return h.response({data: transformer(product)}).code(200)
-            // console.log(id, {name, price})
-            // return 'update'
         }
 
 
